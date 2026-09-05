@@ -1,6 +1,6 @@
-appId: com.openmausbot.app
-productName: OpenMausBot
-artifactName: OpenMausBot-${version}-${arch}.${ext}
+appId: com.omarx0art.openmausbot.personal
+productName: OpenMausBot Personal
+artifactName: OpenMausBot-Personal-${version}-${arch}.${ext}
 
 protocols:
   - name: OpenMausBot package install
@@ -15,7 +15,7 @@ protocols:
 # stranded on its installed version.
 publish:
   - provider: github
-    owner: milind-soni
+    owner: omarx0-art
     repo: OpenMausBot
 
 directories:
@@ -147,11 +147,11 @@ win:
 nsis:
   oneClick: true
   perMachine: false
-  shortcutName: OpenMausBot
+  shortcutName: OpenMausBot Personal
   # Versioned, like the .dmg. The README's /latest/download/ button needs a
   # STABLE filename, so ship a second copy named OpenMausBot-setup.exe on the
   # release — the same trick as OpenMausBot.dmg beside OpenMausBot-${version}.dmg.
-  artifactName: OpenMausBot-${version}-setup.${ext}
+  artifactName: OpenMausBot-Personal-${version}-setup.${ext}
 
 linux:
   target:
