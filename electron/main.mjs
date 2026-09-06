@@ -1,4 +1,4 @@
-import { app, autoUpdater as nativeAutoUpdater, BrowserWindow, WebContentsView, clipboard, desktopCapturer, dialog, ipcMain, Menu, nativeImage, powerSaveBlocker, safeStorage, screen, session, shell, systemPreferences, utilityProcess } from "electron";
+import { app, autoUpdater as nativeAutoUpdater, BrowserWindow, WebContentsView, clipboard, desktopCapturer, dialog, ipcMain, Menu, nativeImage, powerSaveBlocker, safeStorage, screen, session, shell, systemPreferences, Tray, utilityProcess } from "electron";
 import { createRequire } from "node:module";
 import { randomBytes, randomUUID } from "node:crypto";
 import fs from "node:fs";
@@ -76,6 +76,7 @@ import environmentsModule from "./environments.cjs";
 import localOriginModule from "./local-origin.cjs";
 import { buildApplicationMenu } from "./menu.mjs";
 import { acquireDataDirLease } from "./data-dir-lease.mjs";
+import { attachWindowsCloseHandler, createWindowsTray, destroyWindowsTray } from "./tray.mjs";
 
 const { desktopCapabilities, nativeDesktopActions } = capabilitiesModule;
 const nativeActions = nativeDesktopActions(process.platform);
@@ -132,6 +133,7 @@ const browserConnectionStore = createDescriptorStore({
 });
 let pendingPackageInstallUrl = packageUrlFromCommandLine(process.argv);
 let mainWindow = null;
+let windowsTray = null;
 let unreadCount = 0;
 let unreadOverlayIcon = null;
 
@@ -1782,6 +1784,7 @@ function createWindow() {
     },
   });
   mainWindow = win;
+  if (process.platform === "win32") attachWindowsCloseHandler(win, () => desktopShutdownStarted);
   attachUpdaterWindow(win);
   if (!desktopRemoteAccess) void startBrowserSurface(win);
   if (waitsForSkinSync) {
@@ -2585,6 +2588,15 @@ app.whenReady().then(async () => {
   );
   environmentsState = readEnvironments();
   createWindow();
+  if (process.platform === "win32") {
+    windowsTray = createWindowsTray({
+      app,
+      Menu,
+      Tray,
+      getWindow: () => mainWindow,
+      iconPath: APP_ICON,
+    });
+  }
   // Reconcile incomplete setup and resume interrupted sign-out only after the
   // local app is usable. This background network work never gates LAN pairing
   // or the first window.
@@ -2701,5 +2713,9 @@ function releaseDesktopDataDirLease() {
 // before-quit is deliberately too early: this app defers it while owned
 // helpers shut down. will-quit is the final Electron lifecycle boundary; the
 // process hook covers app.exit()/fatal exits that bypass it.
-app.on("will-quit", releaseDesktopDataDirLease);
+app.on("will-quit", () => {
+  destroyWindowsTray();
+  windowsTray = null;
+  releaseDesktopDataDirLease();
+});
 process.once("exit", releaseDesktopDataDirLease);
