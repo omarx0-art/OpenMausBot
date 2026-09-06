@@ -15,6 +15,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+import { parse as parseYaml } from "yaml";
 import { LICENSE_FILES } from "./cua-linux-release.mjs";
 import {
   CLOUDFLARED_ASSETS,
@@ -31,6 +32,19 @@ const releaseDir = path.resolve(process.argv[2] ?? path.join(root, "release"));
 function fail(message) {
   throw new Error(`[verify-linux-package] ${message}`);
 }
+
+function configuredGithubPublishTarget() {
+  const config = parseYaml(readFileSync(path.join(root, "electron-builder.yml"), "utf8"));
+  const target = Array.isArray(config?.publish)
+    ? config.publish.find((entry) => entry?.provider === "github")
+    : null;
+  if (typeof target?.owner !== "string" || typeof target?.repo !== "string") {
+    fail("electron-builder.yml does not define a GitHub publish owner and repo");
+  }
+  return { owner: target.owner, repo: target.repo };
+}
+
+const expectedUpdaterTarget = configuredGithubPublishTarget();
 
 function exactlyOne(suffix) {
   const matches = readdirSync(releaseDir)
@@ -74,9 +88,15 @@ function requirePackageType(resources, label, expected) {
 function requireUpdaterTarget(resources, label) {
   const updateFile = path.join(resources, "app-update.yml");
   requireFile(updateFile);
-  const update = readFileSync(updateFile, "utf8");
-  if (!/^owner: milind-soni$/m.test(update) || !/^repo: OpenMausBot$/m.test(update)) {
-    fail(`${label} app-update.yml does not point at milind-soni/OpenMausBot`);
+  const update = parseYaml(readFileSync(updateFile, "utf8"));
+  if (
+    update?.provider !== "github" ||
+    update?.owner !== expectedUpdaterTarget.owner ||
+    update?.repo !== expectedUpdaterTarget.repo
+  ) {
+    fail(
+      `${label} app-update.yml does not point at ${expectedUpdaterTarget.owner}/${expectedUpdaterTarget.repo}`,
+    );
   }
 }
 
