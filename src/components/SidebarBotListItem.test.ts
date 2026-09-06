@@ -60,11 +60,17 @@ describe("BotListItem", () => {
   });
 
   it("keeps the bot name as the only primary sidebar label", () => {
-    const markup = renderRow(bot({ title: "Developer", description: "Writes production code." }), false);
+    const markup = renderRow(bot({
+      title: "Developer",
+      description: "Writes production code.",
+      messages: [{ id: "latest", role: "bot", kind: "text", text: "Latest update", at: 1_700_000_000_000 }],
+    }), false);
 
     expect(markup).toContain(">Atlas</span>");
+    expect(markup).toContain(">Latest update</span>");
     expect(markup).not.toContain(">Developer</span>");
     expect(markup).not.toContain("Writes production code.");
+    expect(markup).not.toContain("shrink-0 text-xs text-ink-secondary");
   });
 
   it("shows typing dots instead of preview text while the bot works", () => {

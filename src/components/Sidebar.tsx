@@ -758,7 +758,6 @@ export function BotListItem({
   const avatarSize = iconOnly ? 44 : density === "compact" ? 40 : 56;
   // the visible branch, so a version switch changes the row with the chat
   const visible = visibleMessages(bot);
-  const last = visible.at(-1);
   const rowClass = cn(
     "flex w-full items-center rounded-xl border text-left",
     iconOnly
@@ -824,11 +823,6 @@ export function BotListItem({
               inputClassName="w-full rounded bg-inset px-1 py-0.5 text-[15px] font-semibold"
             />
           </span>
-          {selected && last && !renaming && (
-            <span className="shrink-0 text-xs text-ink-secondary transition-opacity group-hover:opacity-0 group-focus-within:opacity-0">
-              {formatTime(last.at)}
-            </span>
-          )}
         </div>
         {bot.chiefOfStaff && !renaming && (
           // Chief of Staff gets its own line under the name so a long name
