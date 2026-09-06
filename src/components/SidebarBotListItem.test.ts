@@ -49,10 +49,8 @@ describe("BotListItem", () => {
 
   it("shows the Chief of Staff label on its own line under the name", () => {
     const withTitle = renderRow(bot({ chiefOfStaff: true, title: "Developer" }), false);
-    expect(withTitle).toContain(">Developer</span>");
+    expect(withTitle).not.toContain(">Developer</span>");
     expect(withTitle).toContain("Chief of Staff</span>");
-    // the label sits after the name line, never inside it
-    expect(withTitle.indexOf("Chief of Staff</span>")).toBeGreaterThan(withTitle.indexOf(">Developer</span>"));
 
     const withoutTitle = renderRow(bot({ chiefOfStaff: true }), false);
     expect(withoutTitle).toContain("Chief of Staff</span>");
@@ -61,11 +59,12 @@ describe("BotListItem", () => {
     expect(renderRow(bot(), false)).not.toContain("Chief of Staff");
   });
 
-  it("shows the bot's title as a badge beside the name", () => {
-    const markup = renderRow(bot({ title: "Developer" }), false);
+  it("keeps the bot name as the only primary sidebar label", () => {
+    const markup = renderRow(bot({ title: "Developer", description: "Writes production code." }), false);
 
-    expect(markup).toContain(">Developer</span>");
-    expect(renderRow(bot({ title: "  " }), false)).not.toContain(">Developer</span>");
+    expect(markup).toContain(">Atlas</span>");
+    expect(markup).not.toContain(">Developer</span>");
+    expect(markup).not.toContain("Writes production code.");
   });
 
   it("shows typing dots instead of preview text while the bot works", () => {
