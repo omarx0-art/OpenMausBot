@@ -92,7 +92,7 @@ test("the patch fails closed when upstream's shape moves", () => {
   }
 });
 
-test("the shipped installer moves the update onto the running AppImage's path", (t) => {
+test("the shipped installer moves the update onto the running AppImage's path", { skip: process.platform === "win32" }, (t) => {
   const electron = { app: {}, autoUpdater: new EventEmitter() };
   const load = Module._load;
   Module._load = (request, ...rest) => (request === "electron" ? electron : load(request, ...rest));
